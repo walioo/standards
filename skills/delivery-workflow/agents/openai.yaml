@@ -1,0 +1,4 @@
+interface:
+  display_name: "开发交付工作流"
+  short_description: "编排维护项目的分支开发、代码审查、测试验收、正式合并与分支清理"
+  default_prompt: "使用 $delivery-workflow 按仓库规则推进本次开发交付，先确认当前阶段，再完成已授权步骤并报告验收状态。"
