@@ -1,0 +1,4 @@
+interface:
+  display_name: "Safe Structured Refactor"
+  short_description: "Audit architecture ownership and acceptance levels"
+  default_prompt: "Use $safe-structured-refactor to audit ownership, dependency direction, wrong-side growth, test structure, and the achieved acceptance level."
