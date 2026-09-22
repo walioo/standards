@@ -14,27 +14,40 @@
 
 ## 安装
 
-将整个 skill 目录复制到目标项目的 `.codex/skills/`。在本仓库根目录执行以下命令，先替换示例项目路径：
+安装三个工作流及随附的成熟技能依赖。在本仓库根目录执行以下命令，先替换示例项目路径；只需系统 Git、Python 3（格式校验时使用）和 `shasum`，安装不联网：
 
 ```bash
-project_root=/absolute/path/to/project
-mkdir -p "$project_root/.codex/skills"
-for skill in delivery-workflow development-workflow code-review-workflow; do
-  if [ -e "$project_root/.codex/skills/$skill" ]; then
-    echo "已存在，先比较再更新：$skill"
-  else
-    cp -R "skills/$skill" "$project_root/.codex/skills/$skill"
-  fi
-done
+(
+  set -eu
+  project_root=/absolute/path/to/project
+  standards_root="$PWD"
+  shasum -a 256 -c dependencies.sha256
+  for source in skills/*; do
+    target="$project_root/.codex/skills/$(basename "$source")"
+    if [ -e "$target" ] && ! diff -qr "$source" "$target" >/dev/null; then
+      echo "存在不同版本，请先比较并处理：$target" >&2
+      exit 1
+    fi
+  done
+  mkdir -p "$project_root/.codex/skills"
+  for source in skills/*; do
+    target="$project_root/.codex/skills/$(basename "$source")"
+    if [ ! -e "$target" ]; then cp -R "$source" "$target"; fi
+  done
+  cd "$project_root/.codex"
+  shasum -a 256 -c "$standards_root/dependencies.sha256"
+)
 ```
 
 保留 `SKILL.md`、`agents/` 和 `references/` 的目录结构。在目标项目技能列表中确认可见后调用；当前会话未识别时，新开会话并明确提供 `SKILL.md` 路径。更新前比较差异，不覆盖项目自己的修改。
 
 ### 成熟技能依赖
 
-本仓库包含交付、开发、审查三个工作流。`development-workflow` 基于已有同名开发流程补充需求澄清、缺口分析与复用决策，可独立执行基础开发闭环；安装时若已有同名技能，先比较并选定使用版本，避免混用不同规则。
+本仓库包含交付、开发、审查三个工作流及所需依赖。`development-workflow` 基于已有同名开发流程补充需求澄清、缺口分析与复用决策，可独立执行基础开发闭环。安装遇到不同版本会在复制前退出；先比较并选择版本，不自动覆盖或混装。
 
-本仓库**不包含以下专项技能的副本**。团队可在目标环境准备对应技能；执行时按会话技能目录定位，不依赖固定用户路径。
+上游技能来自 [addyosmani/agent-skills 固定版本](https://github.com/addyosmani/agent-skills/tree/7829ffd90d973b6325f5f12f1b1226dcace74443)，采用 MIT 许可，每个上游技能目录保留 `LICENSE`。上游 `SKILL.md` 原样保留，共享参考文档复制到各技能的 `references/`，便于独立解析。
+
+`safe-structured-refactor` 和 `structured-refactor-workflow` 为现有本地编排技能快照，不宣称来自该上游。它们及上游技能的逐文件 SHA-256 固定在 [dependencies.sha256](dependencies.sha256)，包括参考文件、元数据及校验脚本；由本仓库版本记录追踪升级。
 
 | 用途 | Skill |
 |---|---|
@@ -43,9 +56,12 @@ done
 | 安全专项 | `security-and-hardening` |
 | 性能专项 | `performance-optimization` |
 | 按需：接口、调试、任务拆分与渐进实现 | `api-and-interface-design`、`debugging-and-error-recovery`、`planning-and-task-breakdown`、`incremental-implementation` |
-| 按需：结构重构 | `structured-refactor-workflow`、`safe-structured-refactor`，以及它们声明的依赖 |
+| 按需：结构重构 | `structured-refactor-workflow`、`safe-structured-refactor` |
+| 传递依赖 | `using-agent-skills`、`spec-driven-development`、`context-engineering`、`doubt-driven-development`、`deprecation-and-migration`、`code-simplification` |
 
-专项技能按风险使用，不要求每个任务全部运行。技能缺失时报告限制，不得宣称执行过缺失流程。依赖来源与版本由团队维护，本仓库不自动下载或安装依赖。
+依赖随包安装，执行仍按风险选择技能，不要求每个任务全部运行。上游文本中的 `skills/<名称>/SKILL.md` 表示已安装的同名技能，不是在当前 skill 下再创建 `skills/`；从会话技能目录解析。缺失或校验不一致时先修复安装，不宣称已执行对应流程。
+
+升级依赖时从明确的上游提交重新导入、保留许可证、同步引用文件并复核差异，再更新哈希；结构重构编排中的固定版本清单与校验脚本也须同步，不能只刷新哈希掩盖意外改动。仓库专属规则和用户指令优先于上游示例，命令、阈值和审批要求须结合适用范围判断。
 
 ## 从需求到实现
 
@@ -160,6 +176,15 @@ done
 仓库规则与通用流程冲突时，先明确项目策略，不静默覆盖。没有 dev/test 的规范或文档仓库不虚构测试分支和业务验收记录，应按该仓库明确的文档评审流程交付。
 
 ## 维护
+
+提交前可运行以下检查，安装测试在临时目录执行并自动清理，不修改已有安装：
+
+```bash
+shasum -a 256 -c dependencies.sha256
+sh skills/structured-refactor-workflow/scripts/verify-upstream-skills.sh
+python3 tests/test_installation.py
+git diff --check
+```
 
 - `skills/` 是发布源，复制到其他项目后需主动同步更新。
 - 通用技能保持跨项目、跨语言，不写入私人绝对路径、凭证、业务数据或项目独有阈值。

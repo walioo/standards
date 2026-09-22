@@ -1,0 +1,4 @@
+interface:
+  display_name: "Structured Refactor Workflow"
+  short_description: "Compose mature skills for safe architecture refactors"
+  default_prompt: "Use $structured-refactor-workflow to refactor one complete use case while preserving ordered effects, batching, failure atomicity, and ownership boundaries, then report its architecture acceptance level."
