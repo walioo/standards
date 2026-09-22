@@ -1,0 +1,4 @@
+interface:
+  display_name: "代码审查工作流"
+  short_description: "复用成熟技能，审查测试覆盖率、代码质量、安全与性能并给出证据化结论"
+  default_prompt: "使用 $code-review-workflow 审查本次改动的测试覆盖率、代码质量、安全和性能，列出有证据的问题及验证缺口。"
