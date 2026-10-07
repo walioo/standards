@@ -69,6 +69,8 @@
 
 已有代码知识图谱时，将它用于能力复用、调用链追踪、变更影响分析及回归范围选择，并接入开发、审查和交付交接。先核对索引的仓库与版本，再用当前源码和测试确认结论；工具缺失或索引过期时仍可按基础流程推进。具体接入见[代码知识图谱增强](skills/development-workflow/references/code-knowledge-graph.md)，支持 codebase-memory 或同类工具，不要求安装特定产品。
 
+每次代码变更增加[关联性审查](skills/development-workflow/references/code-knowledge-graph.md#关联性审查与协作通知)：判断其他服务、接口及消费者是否受影响；有影响时主动提醒开发者，整理通知与配套动作，按授权发送给对应维护方。通知送达、对方确认和联调完成分别记录。
+
 ## 从需求到实现
 
 拿到需求后，使用 `development-workflow` 按以下步骤推进：
